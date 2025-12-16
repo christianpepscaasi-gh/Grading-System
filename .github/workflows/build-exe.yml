@@ -1,4 +1,4 @@
-name: Build EXE
+name: Build GradeApp EXE
 
 on:
   push:
@@ -11,24 +11,34 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    # 1️⃣ Checkout the repository
     - name: Checkout Repo
       uses: actions/checkout@v4
 
+    # 2️⃣ Set up Python 3.10
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
 
+    # 3️⃣ Install dependencies
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
 
+    # 4️⃣ Build EXE with PyInstaller
     - name: Build EXE
       run: |
-        pyinstaller --onefile --windowed --collect-all pandas --collect-all joblib --collect-all openpyxl app.py
+        pyinstaller --onefile --windowed \
+        --collect-all pandas \
+        --collect-all joblib \
+        --collect-all openpyxl \
+        --add-data "model/grade_model.pkl;model" \
+        app.py
 
+    # 5️⃣ Upload the EXE as artifact
     - name: Upload EXE Artifact
       uses: actions/upload-artifact@v4
       with:
