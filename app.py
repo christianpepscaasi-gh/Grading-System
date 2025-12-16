@@ -3,11 +3,17 @@ from tkinter import ttk, filedialog, messagebox
 import pandas as pd
 import joblib
 import os
+import sys
 
 # ======================================================
 # Paths & Model
 # ======================================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, 'frozen', False):
+    # Running as EXE
+    BASE_DIR = sys._MEIPASS
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 MODEL_PATH = os.path.join(BASE_DIR, "model", "grade_model.pkl")
 model = joblib.load(MODEL_PATH)
 
