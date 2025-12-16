@@ -6,7 +6,7 @@ import os
 import sys
 
 # ======================================================
-# Paths & Model
+# Paths & Model (EXE-safe)
 # ======================================================
 if getattr(sys, 'frozen', False):
     # Running as EXE
@@ -15,7 +15,12 @@ else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 MODEL_PATH = os.path.join(BASE_DIR, "model", "grade_model.pkl")
-model = joblib.load(MODEL_PATH)
+
+try:
+    model = joblib.load(MODEL_PATH)
+except Exception as e:
+    messagebox.showerror("Error", f"Failed to load model:\n{e}")
+    sys.exit(1)
 
 # ======================================================
 # Feature Columns
@@ -62,7 +67,6 @@ instructions.pack(pady=5)
 # ======================================================
 style = ttk.Style()
 style.theme_use("default")
-
 style.configure(
     "Treeview",
     background="#f7fbf4",
@@ -71,7 +75,6 @@ style.configure(
     fieldbackground="#f7fbf4",
     font=("Courier New", 10)
 )
-
 style.configure(
     "Treeview.Heading",
     background="#cfe2cf",
@@ -90,15 +93,12 @@ tree.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 for col in COLUMNS:
     tree.heading(col, text=col)
     tree.column(col, width=90, anchor="center")
-
 tree.column("#", width=40)
 
 # Scrollbars
 scroll_y = ttk.Scrollbar(root, orient="vertical", command=tree.yview)
 scroll_x = ttk.Scrollbar(root, orient="horizontal", command=tree.xview)
-
 tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
-
 scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
 scroll_x.pack(side=tk.BOTTOM, fill=tk.X)
 
@@ -114,7 +114,6 @@ def load_file():
             ("All files", "*.*")
         ]
     )
-
     if not file_path:
         return
 
@@ -126,7 +125,7 @@ def load_file():
 
         df.columns = df.columns.astype(str).str.strip()
 
-        # Missing grades/skills => 0
+        # Fill missing grades/skills with 0
         for col in ALL_FEATURES:
             if col not in df.columns:
                 df[col] = 0
@@ -145,11 +144,11 @@ def load_file():
 def display_table(df, predictions):
     tree.delete(*tree.get_children())
     for idx, row in df.iterrows():
-        tree.insert(
-            "",
-            "end",
-            values=[idx + 1] + list(row.values) + [round(predictions[idx], 4)]
-        )
+        pred_val = predictions[idx]
+        # Safe rounding for numeric predictions
+        if isinstance(pred_val, (float, int)):
+            pred_val = round(pred_val, 4)
+        tree.insert("", "end", values=[idx + 1] + list(row.values) + [pred_val])
 
 
 def save_predictions():
@@ -164,7 +163,6 @@ def save_predictions():
             ("CSV files", "*.csv")
         ]
     )
-
     if not file_path:
         return
 
