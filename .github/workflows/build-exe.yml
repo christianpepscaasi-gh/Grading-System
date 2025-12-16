@@ -36,8 +36,8 @@ jobs:
             --collect-all joblib \
             --collect-all openpyxl \
             --hidden-import=numpy \
-            --hidden-import=pytz \
-            --hidden-import=dateutil \
+            --hidden-import=pandas._libs.tslibs.timedeltas \
+            --hidden-import=pandas._libs.tslibs.timestamps \
             --hidden-import=scipy \
             --hidden-import=sklearn \
             --add-data "model/grade_model.pkl;model" \
